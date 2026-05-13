@@ -1,1 +1,305 @@
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receta — Pigmenta Rack</title>
+
+  <!-- Open Graph para previews en WhatsApp/Telegram -->
+  <meta property="og:title" content="Receta de Pigmenta Rack" id="og-title">
+  <meta property="og:description" content="Mezcla de colores para pintura de miniaturas" id="og-desc">
+  <meta property="og:image" content="https://valdizarbewebs-maker.github.io/pigmenta-rack-web/preview.png">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      padding: 24px 16px;
+    }
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 24px;
+      max-width: 420px;
+      margin: 0 auto;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .color-circle {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 3px solid rgba(0,0,0,0.1);
+      flex-shrink: 0;
+    }
+    .recipe-name {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+    .recipe-hex {
+      font-size: 13px;
+      color: #888;
+      margin-top: 4px;
+      font-family: monospace;
+    }
+    .badge {
+      display: inline-block;
+      background: #6C3FE8;
+      color: white;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      margin-top: 6px;
+    }
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+    .ingredient {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .ingredient:last-child { border-bottom: none; }
+    .ing-color {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2px solid rgba(0,0,0,0.08);
+      flex-shrink: 0;
+    }
+    .ing-info { flex: 1; }
+    .ing-name { font-weight: 600; font-size: 15px; color: #1a1a1a; }
+    .ing-brand { font-size: 12px; color: #888; margin-top: 2px; }
+    .ing-pct {
+      font-weight: 700;
+      font-size: 15px;
+      color: #6C3FE8;
+    }
+    .proportion-bar {
+      display: flex;
+      height: 20px;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 16px 0 24px;
+    }
+    .notes {
+      background: #f9f9f9;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+    .divider {
+      height: 1px;
+      background: #f0f0f0;
+      margin: 20px 0;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
+      text-decoration: none;
+      margin-bottom: 10px;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.2s;
+    }
+    .btn:active { opacity: 0.8; }
+    .btn-primary { background: #6C3FE8; color: white; }
+    .btn-store { background: #1a1a1a; color: white; }
+    .btn-secondary {
+      background: transparent;
+      color: #6C3FE8;
+      border: 2px solid #6C3FE8;
+    }
+    .loading {
+      text-align: center;
+      padding: 60px 0;
+      color: #888;
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 4px solid #f0f0f0;
+      border-top-color: #6C3FE8;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .error {
+      text-align: center;
+      padding: 40px 0;
+      color: #e53935;
+    }
+    .app-footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 12px;
+      color: #aaa;
+    }
+    .app-footer span { color: #6C3FE8; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="card" id="app">
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Cargando receta...</p>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+    // ⚠️ Reemplaza con tu config de Firebase
+    const firebaseConfig = {
+      apiKey: "TU_API_KEY",
+      authDomain: "TU_PROJECT.firebaseapp.com",
+      projectId: "TU_PROJECT_ID",
+      storageBucket: "TU_PROJECT.appspot.com",
+      messagingSenderId: "TU_SENDER_ID",
+      appId: "TU_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Obtener ID de la URL: /recipe/RECIPE_ID
+    const pathParts = window.location.pathname.split('/');
+    const recipeId = pathParts[pathParts.length - 1];
+
+    async function loadRecipe() {
+      if (!recipeId) {
+        showError('No se encontró el ID de la receta');
+        return;
+      }
+
+      try {
+        const docRef = doc(db, 'public_recipes', recipeId);
+        const docSnap = await getDoc(docRef);
+
+        if (!docSnap.exists()) {
+          showError('Receta no encontrada');
+          return;
+        }
+
+        renderRecipe({ id: docSnap.id, ...docSnap.data() });
+      } catch (e) {
+        showError('Error al cargar la receta: ' + e.message);
+      }
+    }
+
+    function renderRecipe(recipe) {
+      // Actualizar Open Graph
+      document.getElementById('og-title').content = `🎨 ${recipe.name} — Pigmenta Rack`;
+      document.getElementById('og-desc').content =
+        recipe.ingredients.map(i => `${i.paint_name}: ${i.percentage}%`).join(', ');
+
+      // Barra de proporciones
+      const proportionBar = recipe.ingredients.map(i =>
+        `<div style="flex:${Math.round(i.percentage)};background:${i.hex_color}"></div>`
+      ).join('');
+
+      // Lista de ingredientes
+      const ingredientsList = recipe.ingredients.map(i => `
+        <div class="ingredient">
+          <div class="ing-color" style="background:${i.hex_color}"></div>
+          <div class="ing-info">
+            <div class="ing-name">${i.paint_name}</div>
+            <div class="ing-brand">${i.paint_brand}</div>
+          </div>
+          <div class="ing-pct">${Math.round(i.percentage)}%</div>
+        </div>
+      `).join('');
+
+      const notesHtml = recipe.notes
+        ? `<div class="notes">📝 ${recipe.notes}</div>`
+        : '';
+
+      // Deep link a la app
+      const appLink = `pigmentarack://recipe/${recipe.id}`;
+      const playStoreLink = `https://play.google.com/store/apps/details?id=com.tudominio.pigmenta_rack`;
+
+      document.getElementById('app').innerHTML = `
+        <div class="header">
+          <div class="color-circle" style="background:${recipe.result_hex}"></div>
+          <div>
+            <div class="recipe-name">${recipe.name}</div>
+            <div class="recipe-hex">${recipe.result_hex}</div>
+            <span class="badge">Pigmenta Rack</span>
+          </div>
+        </div>
+
+        <div class="section-title">Composición</div>
+        ${ingredientsList}
+
+        <div class="proportion-bar">${proportionBar}</div>
+
+        ${notesHtml}
+
+        <div class="divider"></div>
+
+        <a href="${appLink}" class="btn btn-primary" onclick="tryOpenApp(event, '${appLink}', '${playStoreLink}')">
+          🎨 Abrir en Pigmenta Rack
+        </a>
+        <a href="${playStoreLink}" class="btn btn-store" id="store-btn" style="display:none">
+          📲 Descargar Pigmenta Rack
+        </a>
+
+        <div class="app-footer">
+          Receta compartida con <span>Pigmenta Rack</span>
+        </div>
+      `;
+    }
+
+    function showError(msg) {
+      document.getElementById('app').innerHTML = `
+        <div class="error">
+          <p style="font-size:32px;margin-bottom:12px">😕</p>
+          <p>${msg}</p>
+        </div>
+        <a href="https://play.google.com/store/apps/details?id=com.tudominio.pigmenta_rack"
+           class="btn btn-store" style="margin-top:24px">
+          Descargar Pigmenta Rack
+        </a>
+      `;
+    }
+
+    // Intentar abrir la app, si no redirigir a Play Store
+    window.tryOpenApp = function(e, appLink, storeLink) {
+      e.preventDefault();
+      window.location.href = appLink;
+      // Si después de 2s no abrió la app, mostrar botón de Play Store
+      setTimeout(() => {
+        document.getElementById('store-btn').style.display = 'block';
+      }, 2000);
+    };
+
+    loadRecipe();
+  </script>
+</body>
+</html>
