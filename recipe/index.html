@@ -193,31 +193,26 @@
     const recipeId = pathParts[pathParts.length - 1];
 
     async function loadRecipe() {
-      if (!recipeId) {
-        showError('No se encontró el ID de la receta');
-        return;
-      }
-
-      try {
-        const docRef = doc(db, 'public_recipes', recipeId);
-        console.log('Intentando leer doc:', recipeId);
-try {
-  const docRef = doc(db, 'public_recipes', recipeId);
-  console.log('DocRef creado');
-  const docSnap = await getDoc(docRef);
-  console.log('DocSnap exists:', docSnap.exists());
-        const docSnap = await getDoc(docRef);
-
-        if (!docSnap.exists()) {
-          showError('Receta no encontrada');
-          return;
-        }
-
-        renderRecipe({ id: docSnap.id, ...docSnap.data() });
-      } catch (e) {
-        showError('Error al cargar la receta: ' + e.message);
-      }
+  if (!recipeId) {
+    showError('No se encontró el ID de la receta');
+    return;
+  }
+  console.log('Intentando leer doc:', recipeId);
+  try {
+    const docRef = doc(db, 'public_recipes', recipeId);
+    console.log('DocRef creado');
+    const docSnap = await getDoc(docRef);
+    console.log('DocSnap exists:', docSnap.exists());
+    if (!docSnap.exists()) {
+      showError('Receta no encontrada');
+      return;
     }
+    renderRecipe({ id: docSnap.id, ...docSnap.data() });
+  } catch (e) {
+    showError('Error al cargar: ' + e.message);
+    console.error('Error Firestore:', e);
+  }
+}
 
     function renderRecipe(recipe) {
       // Actualizar Open Graph
