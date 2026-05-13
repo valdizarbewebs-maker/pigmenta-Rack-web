@@ -171,6 +171,7 @@
 
   <!-- Firebase SDK -->
   <script type="module">
+    console.log('Script cargado. recipeId:', new URLSearchParams(window.location.search).get('id'));
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
     import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
