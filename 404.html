@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <script>
+    // Redirigir rutas dinámicas a recipe/index.html
+    const path = window.location.pathname;
+    const parts = path.split('/');
+    
+    // Buscar si es una ruta de receta
+    // /pigmenta-rack-web/recipe/RECIPE_ID
+    const recipeIndex = parts.indexOf('recipe');
+    if (recipeIndex !== -1 && parts[recipeIndex + 1]) {
+      const recipeId = parts[recipeIndex + 1];
+      // Guardar ID y redirigir a recipe/index.html
+      sessionStorage.setItem('recipeId', recipeId);
+      window.location.replace(
+        '/pigmenta-rack-web/recipe/?id=' + recipeId
+      );
+    } else {
+      window.location.replace('/pigmenta-rack-web/');
+    }
+  </script>
+</head>
+<body></body>
+</html>
