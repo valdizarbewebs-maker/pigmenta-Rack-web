@@ -189,8 +189,9 @@
     const db = getFirestore(app);
 
     // Obtener ID de la URL: /recipe/RECIPE_ID
-    const pathParts = window.location.pathname.split('/');
-    const recipeId = pathParts[pathParts.length - 1];
+   const urlParams = new URLSearchParams(window.location.search);
+const recipeId = urlParams.get('id') || sessionStorage.getItem('recipeId');
+if (recipeId) sessionStorage.removeItem('recipeId');
 
     async function loadRecipe() {
   if (!recipeId) {
